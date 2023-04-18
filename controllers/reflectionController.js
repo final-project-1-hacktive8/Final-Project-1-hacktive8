@@ -6,8 +6,8 @@ class ReflectionController {
     static async GetAllReflectionsbyId(req,res) {
         try {           
             const loginid = req.user.id;
-            const data = await connection.query(`SELECT * FROM reflections WHERE userid = ${loginid}`)
-            res.status(202).json(data.rows[0]);
+            const data = await connection.query(`SELECT * FROM reflections WHERE userid = $1`, [loginid])
+            res.status(202).json(data.rows);
         } catch (error) {
             console.log(error);
             res.status(404).json(error);
@@ -34,29 +34,53 @@ class ReflectionController {
         }
     }
     static async UpdateReflection(req,res) {
+        const loginid = req.user.id;
+        const tableid = req.params.id;
+        const { success, low_point, take_away } = req.body; 
         try {
-            //ambil data lama
-            const oldReflection = await connection.query(`SELECT * FROM reflections WHERE id=$1` [refID]);
+        const oldReflection = await connection.query(`SELECT * FROM reflections WHERE id = $1`, [tableid]);
+        if (oldReflection.rowCount === 0) {
+            res.status(404).json({ error: 'Reflection not found' });
+            return;
+        } 
+        if (oldReflection.rows[0].userid !== loginid) {
+            res.status(403).json({ error: 'You are not authorized to update this reflection' });
+            return;
+        }
+        const updatedReflection = await connection.query(
+            `UPDATE reflections SET success = $1, low_point = $2, take_away = $3, updateat = $4 WHERE id = $5 RETURNING *`,
+            [success, low_point, take_away, new Date().toISOString(), tableid]
+        );
+
+        res.status(200).json(updatedReflection.rows[0]);
+        }  catch (error) {
+            console.log(error);
+            res.status(500).json({ error: 'Internal server error' });   
+        }
+            
+     } 
+    static async DeleteReflection(req,res) {
+        const loginid = req.user.id;
+        const tableid = req.params.id;
+        try {
+            const reflection = await connection.query(`SELECT * FROM reflections WHERE id = $1`, [tableid]);
+            if (reflection.rowCount === 0) {
+                res.status(404).json({ error: 'Reflection not found' });
+                return;
+            }
+            if (reflection.rows[0].userid !== loginid) {
+                res.status(403).json({ error: 'You are not authorized to delete this reflection' });
+                return;
+            }
+            await connection.query(`DELETE FROM reflections WHERE id = $1`, [tableid]);
+    
+            res.status(200).json({ message: 'Reflection deleted successfully' });
         } catch (error) {
             console.log(error);
-            res.status(404).json(error);
+            res.status(500).json({ error: 'Internal server error' });
         }
-        //update data
-        try {
-            await connection.query(`UPDATE reflections SET checked=$1 Where id=$2`, [!oldReflection.rows[0].checked,[refID]])
-        } catch (err) {
-            console.log(error);
-            res.status(500).json(error)
-        }
-    }  
-    static async DeleteReflection(req,res) {
-        try {
-            await connection.query(`DELETE FROM reflections WHERE id=$1`,[refID])
-        } catch (err) {
-            console.log(error);
-            res.status(500).json(error)
-        } return;
     }
-
 }
+
+
 module.exports = ReflectionController;
