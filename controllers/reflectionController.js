@@ -43,10 +43,6 @@ class ReflectionController {
             res.status(404).json({ error: 'Reflection not found' });
             return;
         } 
-        if (oldReflection.rows[0].userid !== loginid) {
-            res.status(403).json({ error: 'You are not authorized to update this reflection' });
-            return;
-        }
         const updatedReflection = await connection.query(
             `UPDATE reflections SET success = $1, low_point = $2, take_away = $3, updateat = $4 WHERE id = $5 RETURNING *`,
             [success, low_point, take_away, new Date().toISOString(), tableid]
@@ -68,10 +64,7 @@ class ReflectionController {
                 res.status(404).json({ error: 'Reflection not found' });
                 return;
             }
-            if (reflection.rows[0].userid !== loginid) {
-                res.status(403).json({ error: 'You are not authorized to delete this reflection' });
-                return;
-            }
+
             await connection.query(`DELETE FROM reflections WHERE id = $1`, [tableid]);
     
             res.status(200).json({ message: 'Reflection deleted successfully' });
