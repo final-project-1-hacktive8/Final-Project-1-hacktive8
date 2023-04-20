@@ -14,6 +14,19 @@ class ReflectionController {
         }
     }
 
+    //get reflection by id
+    static async GetReflectionById(req,res) {
+        try {
+            const loginid = req.user.id;
+            const tableid = req.params.id;
+            const data = await connection.query(`SELECT * FROM reflections WHERE userid = $1 AND id = $2`, [loginid, tableid])
+            res.status(202).json(data.rows);
+        } catch (error) {
+            console.log(error);
+            res.status(404).json(error);
+        }
+    }
+
     static async CreateReflection(req,res) {
         try {
             const loginid = req.user.id;
@@ -33,6 +46,9 @@ class ReflectionController {
             res.status(500).json(error);
         }
     }
+
+
+
     static async UpdateReflection(req,res) {
         const loginid = req.user.id;
         const tableid = req.params.id;
