@@ -24,16 +24,18 @@ class reflection {
         }
     }
 
-    //get reflections by id
+    //get reflections by id by user login
     static async getReflectionById(req, res) {
         try {
             const id = req.params.id;
-            const data = await connection.query('SELECT * FROM reflections WHERE id = $1', [id]);
+            const userid = req.user.id;
+            const data = await connection.query('SELECT * FROM reflections WHERE id = $1 AND userid = $2', [id, userid]);
             res.status(200).json(data.rows[0]);
         } catch (error) {
             res.status(500).json(error);
         }
     }
+    
 
     //update reflections by id
     static async updateReflection(req, res) {
