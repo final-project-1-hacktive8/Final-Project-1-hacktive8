@@ -1,7 +1,6 @@
 const connection = require('../config/db');
 
 
-
 class ReflectionController {
     static async GetAllReflectionsbyId(req,res) {
         try {           
@@ -54,11 +53,7 @@ class ReflectionController {
         const tableid = req.params.id;
         const { success, low_point, take_away } = req.body; 
         try {
-        const oldReflection = await connection.query(`SELECT * FROM reflections WHERE id = $1`, [tableid]);
-        if (oldReflection.rowCount === 0) {
-            res.status(404).json({ error: 'Reflection not found' });
-            return;
-        } 
+
         const updatedReflection = await connection.query(
             `UPDATE reflections SET success = $1, low_point = $2, take_away = $3, updateat = $4 WHERE id = $5 RETURNING *`,
             [success, low_point, take_away, new Date().toISOString(), tableid]
@@ -75,11 +70,6 @@ class ReflectionController {
         const loginid = req.user.id;
         const tableid = req.params.id;
         try {
-            const reflection = await connection.query(`SELECT * FROM reflections WHERE id = $1`, [tableid]);
-            if (reflection.rowCount === 0) {
-                res.status(404).json({ error: 'Reflection not found' });
-                return;
-            }
 
             await connection.query(`DELETE FROM reflections WHERE id = $1`, [tableid]);
     
