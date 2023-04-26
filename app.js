@@ -1,12 +1,11 @@
 
+require('dotenv').config();
 const express = require('express');
-const connection = require('./config/db');
 const app = express();
 const PORT = 3000;
+// const env = require.env.NODE_ENV || 'development';
 const router = require('./routers/index');
-app.get('/', function (req, res) {
-    res.send('Test');
-})
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,3 +17,4 @@ app.listen(PORT, () => {
 });
 
 
+module.exports = app;
